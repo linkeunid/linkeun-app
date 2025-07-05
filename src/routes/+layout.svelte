@@ -7,7 +7,19 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { segmentToLabel } from '$lib/config/breadcrumb-labels';
 	import { ModeWatcher } from 'mode-watcher';
+	import { Toaster } from '$lib/components/ui/sonner';
+	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import '../app.css';
+
+	// Create QueryClient instance
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				staleTime: 5 * 60 * 1000, // 5 minutes
+				refetchOnWindowFocus: false,
+			},
+		},
+	});
 
 	let { children, data } = $props();
 
@@ -64,38 +76,41 @@
 </svelte:head>
 
 <ModeWatcher />
-<Sidebar.Provider>
-	<AppSidebar user={data.user} />
-	<Sidebar.Inset>
-		<header
-			class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
-		>
-			<div class="flex flex-1 items-center gap-2 px-4">
-				<Sidebar.Trigger class="-ml-1" />
-				<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
-				<Breadcrumb.Root>
-					<Breadcrumb.List>
-						{#each breadcrumbs as crumb, index}
-							{#if index > 0}
-								<Breadcrumb.Separator class="hidden md:block" />
-							{/if}
-							<Breadcrumb.Item class={crumb.isHome ? 'hidden md:block' : ''}>
-								{#if crumb.href}
-									<Breadcrumb.Link href={crumb.href}>{crumb.label}</Breadcrumb.Link>
-								{:else}
-									<Breadcrumb.Page>{crumb.label}</Breadcrumb.Page>
+<QueryClientProvider client={queryClient}>
+	<Sidebar.Provider>
+		<AppSidebar user={data.user} />
+		<Sidebar.Inset>
+			<header
+				class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
+			>
+				<div class="flex flex-1 items-center gap-2 px-4">
+					<Sidebar.Trigger class="-ml-1" />
+					<Separator orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" />
+					<Breadcrumb.Root>
+						<Breadcrumb.List>
+							{#each breadcrumbs as crumb, index}
+								{#if index > 0}
+									<Breadcrumb.Separator class="hidden md:block" />
 								{/if}
-							</Breadcrumb.Item>
-						{/each}
-					</Breadcrumb.List>
-				</Breadcrumb.Root>
+								<Breadcrumb.Item class={crumb.isHome ? 'hidden md:block' : ''}>
+									{#if crumb.href}
+										<Breadcrumb.Link href={crumb.href}>{crumb.label}</Breadcrumb.Link>
+									{:else}
+										<Breadcrumb.Page>{crumb.label}</Breadcrumb.Page>
+									{/if}
+								</Breadcrumb.Item>
+							{/each}
+						</Breadcrumb.List>
+					</Breadcrumb.Root>
+				</div>
+				<div class="flex items-center gap-2 px-4">
+					<ThemeSwitcher />
+				</div>
+			</header>
+			<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+				{@render children()}
 			</div>
-			<div class="flex items-center gap-2 px-4">
-				<ThemeSwitcher />
-			</div>
-		</header>
-		<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
-			{@render children()}
-		</div>
-	</Sidebar.Inset>
-</Sidebar.Provider>
+		</Sidebar.Inset>
+	</Sidebar.Provider>
+</QueryClientProvider>
+<Toaster />

@@ -6,9 +6,11 @@
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 	import EditIcon from '@lucide/svelte/icons/edit';
 	import TrashIcon from '@lucide/svelte/icons/trash';
+	import { toast } from "svelte-sonner";
 
 	let {
-		link
+		link,
+		baseUrl
 	}: {
 		link: {
 			id: number;
@@ -16,13 +18,21 @@
 			original_url: string;
 			is_active: boolean;
 		};
+		baseUrl: string;
 	} = $props();
 
 	async function copyShortUrl() {
 		try {
-			await navigator.clipboard.writeText(`http://localhost:3000/${link.short_code}`);
+			const shortUrl = `${baseUrl}/api/s/${link.short_code}`;
+			await navigator.clipboard.writeText(shortUrl);
+			toast.success("Short URL copied!", {
+				description: shortUrl
+			});
 		} catch (err) {
 			console.error('Failed to copy: ', err);
+			toast.error("Failed to copy", {
+				description: "Unable to copy short URL to clipboard"
+			});
 		}
 	}
 

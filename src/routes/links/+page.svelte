@@ -1,21 +1,31 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { env } from '$env/dynamic/public';
+	import ClicksCell from '$lib/components/links/clicks-cell.svelte';
+	import CustomAliasCell from '$lib/components/links/custom-alias-cell.svelte';
+	import DataTableCheckbox from '$lib/components/links/data-table-checkbox.svelte';
+	import DataTableRowActions from '$lib/components/links/data-table-row-actions.svelte';
+	import DateCell from '$lib/components/links/date-cell.svelte';
+	import DescriptionCell from '$lib/components/links/description-cell.svelte';
+	import PrivacyCell from '$lib/components/links/privacy-cell.svelte';
+	import ShortCodeCell from '$lib/components/links/short-code-cell.svelte';
+	import { PaginationSkeleton, TableSkeleton } from '$lib/components/links/skeleton/index.js';
+	import StatusCell from '$lib/components/links/status-cell.svelte';
+	import UrlCell from '$lib/components/links/url-cell.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import {
 		FlexRender,
 		createSvelteTable,
-		renderComponent,
-		renderSnippet
+		renderComponent
 	} from '$lib/components/ui/data-table/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-	import ArrowUpNarrowWideIcon from '@lucide/svelte/icons/arrow-up-narrow-wide';
+	import { useLinks } from '@/lib/hooks/useLinks';
 	import ArrowDownNarrowWideIcon from '@lucide/svelte/icons/arrow-down-narrow-wide';
-	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
+	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
+	import ArrowUpNarrowWideIcon from '@lucide/svelte/icons/arrow-up-narrow-wide';
+	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import {
 		type ColumnDef,
 		type ColumnFiltersState,
@@ -23,29 +33,45 @@
 		type RowSelectionState,
 		type SortingState,
 		type VisibilityState,
-		getCoreRowModel,
-		getFilteredRowModel,
-		getPaginationRowModel,
-		getSortedRowModel
+		getCoreRowModel
 	} from '@tanstack/table-core';
-	import { createRawSnippet } from 'svelte';
-	import DataTableCheckbox from './data-table-checkbox.svelte';
-	import DataTableRowActions from './data-table-row-actions.svelte';
+	import { toast } from 'svelte-sonner';
+	import type { Link } from './types/links.type';
 
-	type Link = {
-		id: number;
-		short_code: string;
-		original_url: string;
-		custom_alias: string | null;
-		description: string | null;
-		clicks_count: number;
-		is_active: boolean;
-		created_at: string;
-		updated_at: string;
-		user_id: number;
+	type PageData = {
+		notLoggedIn: boolean;
+		sessionToken: string | null;
 	};
 
-	const { data } = $props<PageData>();
+	const { data }: { data: PageData } = $props();
+
+	// Get base URL for short links
+	const baseUrl = env.PUBLIC_API_BASE_URL || 'http://localhost:3000';
+
+	// Client-side search state
+	let searchValue = $state('');
+	let debouncedSearchValue = $state('');
+
+	// Use a regular variable for timeout to avoid reactivity loop
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+	$effect(() => {
+		console.log('searchValue changed to:', searchValue);
+		if (debounceTimer) {
+			clearTimeout(debounceTimer);
+		}
+
+		debounceTimer = setTimeout(() => {
+			debouncedSearchValue = searchValue;
+			console.log('Updated debouncedSearchValue to:', searchValue);
+		}, 300);
+
+		return () => {
+			if (debounceTimer) {
+				clearTimeout(debounceTimer);
+			}
+		};
+	});
 
 	// Page size options for the select
 	const pageSizeOptions = [
@@ -63,17 +89,57 @@
 		pageSizeOptions.find((option) => option.value === pageSizeValue)?.label ?? '10'
 	);
 
-	function updateURL(searchParams: Record<string, string | number>) {
-		const url = new URL($page.url);
-		Object.entries(searchParams).forEach(([key, value]) => {
-			if (value) {
-				url.searchParams.set(key, value.toString());
-			} else {
-				url.searchParams.delete(key);
-			}
-		});
-		goto(url.toString(), { replaceState: true });
-	}
+	// Client-side pagination state
+	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
+	let sorting = $state<SortingState>([]);
+	let columnFilters = $state<ColumnFiltersState>([]);
+	let rowSelection = $state<RowSelectionState>({});
+	let columnVisibility = $state<VisibilityState>({});
+
+	const linksQuery = $derived.by(() =>
+		useLinks(
+			{
+				search: debouncedSearchValue,
+				page: pagination.pageIndex + 1,
+				per_page: pagination.pageSize,
+				sortBy: sorting[0]?.id ?? 'updated_at',
+				sort: sorting[0]?.desc ? 'asc' : 'desc'
+			},
+			data.sessionToken!
+		)
+	);
+	// const linksQuery = $derived(
+	// 	createQuery({
+	// 		queryKey: ['links', debouncedSearchValue, pagination.pageIndex, pagination.pageSize],
+	// 		queryFn: () =>
+	// 			fetchLinks(
+	// 				{
+	// 					search: debouncedSearchValue,
+	// 					page: pagination.pageIndex + 1,
+	// 					per_page: pagination.pageSize
+	// 				},
+	// 				data.sessionToken!
+	// 			),
+	// 		enabled: !!data.sessionToken,
+	// 		staleTime: 5 * 60 * 1000,
+	// 		retry: (failureCount, error: any) => {
+	// 			if (error?.response?.status === 401) return false;
+	// 			return failureCount < 3;
+	// 		}
+	// 	})
+	// );
+
+	// Show toast for errors
+	$effect(() => {
+		// console.log($testQuery.data, 'testQuery');
+		if ($linksQuery.error) {
+			const errorMessage =
+				$linksQuery.error?.response?.data?.message ||
+				$linksQuery.error?.message ||
+				'Failed to load links';
+			toast.error(errorMessage);
+		}
+	});
 
 	const columns: ColumnDef<Link>[] = [
 		{
@@ -96,262 +162,154 @@
 		},
 		{
 			accessorKey: 'short_code',
-			header: ({ column }) => {
-				const sortable = createRawSnippet<[]>(() => {
-					const sortDirection = column.getIsSorted();
-					const iconClass = "ml-2 h-4 w-4";
-					let icon = '';
-					if (sortDirection === 'asc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg>';
-					} else if (sortDirection === 'desc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h4"/><path d="M11 8h7"/><path d="M11 12h10"/></svg>';
-					} else {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
-					}
-					return {
-						render: () => `
-							<div class="flex items-center hover:text-accent-foreground">
-								Short Code
-								${icon}
-							</div>
-						`
-					};
-				});
-				return renderSnippet(sortable, '');
-			},
-			cell: ({ row }) => {
-				const shortCodeSnippet = createRawSnippet<[string]>((getShortCode) => {
-					const shortCode = getShortCode();
-					return {
-						render: () => `
-							<div class="flex items-center space-x-2">
-								<code class="px-2 py-1 bg-muted text-sm rounded">${shortCode}</code>
-								<span class="text-muted-foreground text-xs">http://localhost:3000/${shortCode}</span>
-							</div>
-						`
-					};
-				});
-				return renderSnippet(shortCodeSnippet, row.getValue('short_code'));
-			}
+			header: 'Short Code',
+			cell: ({ row }) =>
+				renderComponent(ShortCodeCell, {
+					shortCode: row.getValue('short_code') as string,
+					baseUrl
+				})
 		},
 		{
 			accessorKey: 'original_url',
-			header: ({ column }) => {
-				const sortable = createRawSnippet<[]>(() => {
-					const sortDirection = column.getIsSorted();
-					const iconClass = "ml-2 h-4 w-4";
-					let icon = '';
-					if (sortDirection === 'asc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg>';
-					} else if (sortDirection === 'desc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h4"/><path d="M11 8h7"/><path d="M11 12h10"/></svg>';
-					} else {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
-					}
-					return {
-						render: () => `
-							<div class="flex items-center hover:text-accent-foreground">
-								Original URL
-								${icon}
-							</div>
-						`
-					};
-				});
-				return renderSnippet(sortable, '');
-			},
-			cell: ({ row }) => {
-				const urlSnippet = createRawSnippet<[string]>((getUrl) => {
-					const url = getUrl();
-					return {
-						render: () => `
-							<div class="max-w-md truncate">
-								<a href="${url}" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1 text-blue-600 hover:underline">
-									<span>${url}</span>
-									<svg class="h-3 w-3 opacity-70" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-								</a>
-							</div>
-						`
-					};
-				});
-				return renderSnippet(urlSnippet, row.getValue('original_url'));
-			}
+			header: 'Original URL',
+			cell: ({ row }) =>
+				renderComponent(UrlCell, {
+					url: row.getValue('original_url') as string
+				})
+		},
+		{
+			accessorKey: 'custom_alias',
+			header: 'Custom Alias',
+			cell: ({ row }) =>
+				renderComponent(CustomAliasCell, {
+					customAlias: row.getValue('custom_alias') as string | null
+				})
+		},
+		{
+			accessorKey: 'description',
+			header: 'Description',
+			cell: ({ row }) =>
+				renderComponent(DescriptionCell, {
+					description: row.getValue('description') as string | null
+				})
 		},
 		{
 			accessorKey: 'clicks_count',
-			header: ({ column }) => {
-				const sortable = createRawSnippet<[]>(() => {
-					const sortDirection = column.getIsSorted();
-					const iconClass = "ml-2 h-4 w-4";
-					let icon = '';
-					if (sortDirection === 'asc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg>';
-					} else if (sortDirection === 'desc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h4"/><path d="M11 8h7"/><path d="M11 12h10"/></svg>';
-					} else {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
-					}
-					return {
-						render: () => `
-							<div class="flex items-center hover:text-accent-foreground">
-								Clicks
-								${icon}
-							</div>
-						`
-					};
-				});
-				return renderSnippet(sortable, '');
-			},
-			cell: ({ row }) => {
-				const clicksSnippet = createRawSnippet<[number]>((getClicks) => {
-					const clicks = getClicks();
-					return {
-						render: () => `
-							<div class="text-center">
-								<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-									${clicks}
-								</span>
-							</div>
-						`
-					};
-				});
-				return renderSnippet(clicksSnippet, row.getValue('clicks_count'));
-			}
+			header: 'Clicks',
+			cell: ({ row }) =>
+				renderComponent(ClicksCell, {
+					clicks: row.getValue('clicks_count') as number
+				})
 		},
 		{
 			accessorKey: 'is_active',
 			header: 'Status',
-			cell: ({ row }) => {
-				const statusSnippet = createRawSnippet<[boolean]>((getStatus) => {
-					const status = getStatus();
-					return {
-						render: () => `
-							<div class="flex items-center">
-								<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-									status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-								}">
-									${status ? 'Active' : 'Inactive'}
-								</span>
-							</div>
-						`
-					};
-				});
-				return renderSnippet(statusSnippet, row.getValue('is_active'));
-			}
+			cell: ({ row }) =>
+				renderComponent(StatusCell, {
+					isActive: row.getValue('is_active') as boolean
+				})
+		},
+		{
+			accessorKey: 'is_private',
+			header: 'Privacy',
+			cell: ({ row }) =>
+				renderComponent(PrivacyCell, {
+					isPrivate: row.getValue('is_private') as boolean
+				})
 		},
 		{
 			accessorKey: 'created_at',
-			header: ({ column }) => {
-				const sortable = createRawSnippet<[]>(() => {
-					const sortDirection = column.getIsSorted();
-					const iconClass = "ml-2 h-4 w-4";
-					let icon = '';
-					if (sortDirection === 'asc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg>';
-					} else if (sortDirection === 'desc') {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h4"/><path d="M11 8h7"/><path d="M11 12h10"/></svg>';
-					} else {
-						icon = '<svg class="' + iconClass + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
-					}
-					return {
-						render: () => `
-							<div class="flex items-center hover:text-accent-foreground">
-								Created
-								${icon}
-							</div>
-						`
-					};
-				});
-				return renderSnippet(sortable, '');
-			},
-			cell: ({ row }) => {
-				const dateSnippet = createRawSnippet<[string]>((getDate) => {
-					const date = getDate();
-					return {
-						render: () => `
-							<div class="text-sm text-muted-foreground">
-								${new Date(date).toLocaleDateString()}
-							</div>
-						`
-					};
-				});
-				return renderSnippet(dateSnippet, row.getValue('created_at'));
-			}
+			header: 'Created',
+			cell: ({ row }) =>
+				renderComponent(DateCell, {
+					date: row.getValue('created_at') as string
+				})
+		},
+		{
+			accessorKey: 'updated_at',
+			header: 'Updated',
+			cell: ({ row }) =>
+				renderComponent(DateCell, {
+					date: row.getValue('updated_at') as string
+				})
 		},
 		{
 			id: 'actions',
 			enableHiding: false,
-			cell: ({ row }) => renderComponent(DataTableRowActions, { link: row.original })
+			cell: ({ row }) => renderComponent(DataTableRowActions, { link: row.original, baseUrl })
 		}
 	];
 
-	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
-	let sorting = $state<SortingState>([]);
-	let columnFilters = $state<ColumnFiltersState>([]);
-	let rowSelection = $state<RowSelectionState>({});
-	let columnVisibility = $state<VisibilityState>({});
-
-	const table = createSvelteTable({
-		get data() {
-			return data.links.data ?? [];
-		},
-		columns,
-		state: {
-			get pagination() {
-				return pagination;
+	const table = $derived(
+		createSvelteTable({
+			manualPagination: true,
+			pageCount: $linksQuery?.data?.meta?.last_page ?? -1,
+			get data() {
+				if (
+					$linksQuery.isSuccess &&
+					$linksQuery.data?.code === 200 &&
+					Array.isArray($linksQuery.data.data)
+				) {
+					return $linksQuery.data.data as Link[];
+				}
+				return [];
 			},
-			get sorting() {
-				return sorting;
+			columns,
+			getCoreRowModel: getCoreRowModel(),
+			state: {
+				get pagination() {
+					return pagination;
+				},
+				get sorting() {
+					return sorting;
+				},
+				get columnVisibility() {
+					return columnVisibility;
+				},
+				get rowSelection() {
+					return rowSelection;
+				},
+				get columnFilters() {
+					return columnFilters;
+				}
 			},
-			get columnVisibility() {
-				return columnVisibility;
+			onPaginationChange: (updater) => {
+				if (typeof updater === 'function') {
+					pagination = updater(pagination);
+				} else {
+					pagination = updater;
+				}
 			},
-			get rowSelection() {
-				return rowSelection;
+			onSortingChange: (updater) => {
+				if (typeof updater === 'function') {
+					sorting = updater(sorting);
+				} else {
+					sorting = updater;
+				}
 			},
-			get columnFilters() {
-				return columnFilters;
+			onColumnFiltersChange: (updater) => {
+				if (typeof updater === 'function') {
+					columnFilters = updater(columnFilters);
+				} else {
+					columnFilters = updater;
+				}
+			},
+			onColumnVisibilityChange: (updater) => {
+				if (typeof updater === 'function') {
+					columnVisibility = updater(columnVisibility);
+				} else {
+					columnVisibility = updater;
+				}
+			},
+			onRowSelectionChange: (updater) => {
+				if (typeof updater === 'function') {
+					rowSelection = updater(rowSelection);
+				} else {
+					rowSelection = updater;
+				}
 			}
-		},
-		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		onPaginationChange: (updater) => {
-			if (typeof updater === 'function') {
-				pagination = updater(pagination);
-			} else {
-				pagination = updater;
-			}
-		},
-		onSortingChange: (updater) => {
-			if (typeof updater === 'function') {
-				sorting = updater(sorting);
-			} else {
-				sorting = updater;
-			}
-		},
-		onColumnFiltersChange: (updater) => {
-			if (typeof updater === 'function') {
-				columnFilters = updater(columnFilters);
-			} else {
-				columnFilters = updater;
-			}
-		},
-		onColumnVisibilityChange: (updater) => {
-			if (typeof updater === 'function') {
-				columnVisibility = updater(columnVisibility);
-			} else {
-				columnVisibility = updater;
-			}
-		},
-		onRowSelectionChange: (updater) => {
-			if (typeof updater === 'function') {
-				rowSelection = updater(rowSelection);
-			} else {
-				rowSelection = updater;
-			}
-		}
-	});
+		})
+	);
 </script>
 
 <div class="container mx-auto py-10">
@@ -361,15 +319,9 @@
 			<p class="text-muted-foreground">Manage your shortened links and track their performance.</p>
 		</div>
 		{#if !data.notLoggedIn}
-			<Button href="/create" class="ml-auto">Create New Link</Button>
+			<Button href="/links/create" class="ml-auto">Create New Link</Button>
 		{/if}
 	</div>
-
-	{#if data.error}
-		<div class="mt-4 rounded-md border border-red-200 bg-red-50 p-4">
-			<p class="text-red-800">{data.error}</p>
-		</div>
-	{/if}
 
 	{#if data.notLoggedIn}
 		<div class="mt-6 flex flex-col items-center justify-center py-12">
@@ -385,14 +337,7 @@
 	{:else}
 		<div class="mt-6 w-full">
 			<div class="flex items-center py-4">
-				<Input
-					placeholder="Filter URLs..."
-					value={(table.getColumn('original_url')?.getFilterValue() as string) ?? ''}
-					oninput={(e) => {
-						table.getColumn('original_url')?.setFilterValue(e.currentTarget.value);
-					}}
-					class="max-w-sm"
-				/>
+				<Input placeholder="Filter URLs..." bind:value={searchValue} class="max-w-sm" />
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
 						{#snippet child({ props })}
@@ -415,134 +360,155 @@
 				</DropdownMenu.Root>
 			</div>
 
-			<div class="rounded-md border">
-				<Table.Root>
-					<Table.Header>
-						{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-							<Table.Row>
-								{#each headerGroup.headers as header (header.id)}
-									<Table.Head class="[&:has([role=checkbox])]:pl-3">
-										{#if !header.isPlaceholder}
-											{#if header.column.getCanSort()}
-												<button
-													type="button"
-													class="hover:text-accent-foreground focus:ring-ring -m-1 flex items-center space-x-2 rounded-sm p-1 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-													onclick={header.column.getToggleSortingHandler()}
-													onkeydown={(e) => {
-														if (e.key === 'Enter' || e.key === ' ') {
-															e.preventDefault();
-															header.column.getToggleSortingHandler()?.(e);
-														}
-													}}
-													aria-label={`Sort by ${header.column.id}`}
-												>
+			{#if $linksQuery.isPending}
+				<TableSkeleton rows={pagination.pageSize} />
+				<PaginationSkeleton />
+			{:else if $linksQuery.isSuccess}
+				<div class="rounded-md border">
+					<Table.Root>
+						<Table.Header>
+							{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
+								<Table.Row>
+									{#each headerGroup.headers as header (header.id)}
+										<Table.Head class="[&:has([role=checkbox])]:pl-3">
+											{#if !header.isPlaceholder}
+												{#if header.column.getCanSort()}
+													<button
+														type="button"
+														class="hover:text-accent-foreground focus:ring-ring -m-1 flex items-center space-x-2 rounded-sm p-1 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+														onclick={header.column.getToggleSortingHandler()}
+														onkeydown={(e) => {
+															if (e.key === 'Enter' || e.key === ' ') {
+																e.preventDefault();
+																header.column.getToggleSortingHandler()?.(e);
+															}
+														}}
+														aria-label={`Sort by ${header.column.id}`}
+													>
+														<FlexRender
+															content={header.column.columnDef.header}
+															context={header.getContext()}
+														/>
+														{#if header.column.getIsSorted() === 'asc'}
+															<ArrowUpNarrowWideIcon class="ml-2 h-4 w-4" />
+														{:else if header.column.getIsSorted() === 'desc'}
+															<ArrowDownNarrowWideIcon class="ml-2 h-4 w-4" />
+														{:else}
+															<ArrowUpDownIcon class="ml-2 h-4 w-4" />
+														{/if}
+													</button>
+												{:else}
 													<FlexRender
 														content={header.column.columnDef.header}
 														context={header.getContext()}
 													/>
-												</button>
-											{:else}
-												<FlexRender
-													content={header.column.columnDef.header}
-													context={header.getContext()}
-												/>
+												{/if}
 											{/if}
-										{/if}
-									</Table.Head>
-								{/each}
-							</Table.Row>
-						{/each}
-					</Table.Header>
-					<Table.Body>
-						{#each table.getRowModel().rows as row (row.id)}
-							<Table.Row data-state={row.getIsSelected() && 'selected'}>
-								{#each row.getVisibleCells() as cell (cell.id)}
-									<Table.Cell class="[&:has([role=checkbox])]:pl-3">
-										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
-									</Table.Cell>
-								{/each}
-							</Table.Row>
-						{:else}
-							<Table.Row>
-								<Table.Cell colspan={columns.length} class="h-24 text-center"
-									>No results.</Table.Cell
-								>
-							</Table.Row>
-						{/each}
-					</Table.Body>
-				</Table.Root>
-			</div>
-
-			<div class="flex items-center justify-between space-x-2 py-4">
-				<div class="text-muted-foreground flex-1 text-sm">
-					{table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows
-						.length} row(s) selected.
-				</div>
-				<div class="flex items-center space-x-2">
-					<div class="flex items-center space-x-2">
-						<p class="text-sm font-medium">Rows per page</p>
-						<Select.Root
-							type="single"
-							bind:value={pageSizeValue}
-							onValueChange={(value) => {
-								if (value) {
-									table.setPageSize(Number(value));
-								}
-							}}
-						>
-							<Select.Trigger class="h-8 w-[70px]">
-								{pageSizeTriggerContent}
-							</Select.Trigger>
-							<Select.Content>
-								<Select.Group>
-									{#each pageSizeOptions as option (option.value)}
-										<Select.Item value={option.value} label={option.label}>
-											{option.label}
-										</Select.Item>
+										</Table.Head>
 									{/each}
-								</Select.Group>
-							</Select.Content>
-						</Select.Root>
-					</div>
-					<div class="flex w-[100px] items-center justify-center text-sm font-medium">
-						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+								</Table.Row>
+							{/each}
+						</Table.Header>
+						<Table.Body>
+							{#each table.getRowModel().rows as row (row.id)}
+								<Table.Row data-state={row.getIsSelected() && 'selected'}>
+									{#each row.getVisibleCells() as cell (cell.id)}
+										<Table.Cell class="[&:has([role=checkbox])]:pl-3">
+											<FlexRender
+												content={cell.column.columnDef.cell}
+												context={cell.getContext()}
+											/>
+										</Table.Cell>
+									{/each}
+								</Table.Row>
+							{:else}
+								<Table.Row>
+									<Table.Cell colspan={columns.length} class="h-24 text-center">
+										{$linksQuery.isLoading ? 'Loading...' : 'No results.'}
+									</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				</div>
+
+				<div class="flex items-center justify-between space-x-2 py-4">
+					<div class="text-muted-foreground flex-1 text-sm">
+						{table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows
+							.length} row(s) selected.
 					</div>
 					<div class="flex items-center space-x-2">
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => table.setPageIndex(0)}
-							disabled={!table.getCanPreviousPage()}
-						>
-							First
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => table.previousPage()}
-							disabled={!table.getCanPreviousPage()}
-						>
-							Previous
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => table.nextPage()}
-							disabled={!table.getCanNextPage()}
-						>
-							Next
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => table.setPageIndex(table.getPageCount() - 1)}
-							disabled={!table.getCanNextPage()}
-						>
-							Last
-						</Button>
+						<div class="flex items-center space-x-2">
+							<p class="text-sm font-medium">Rows per page</p>
+							<Select.Root
+								type="single"
+								bind:value={pageSizeValue}
+								onValueChange={(value) => {
+									if (value) {
+										pagination.pageSize = Number(value);
+										pagination.pageIndex = 0; // Reset to first page
+										table.setPageSize(Number(value));
+									}
+								}}
+							>
+								<Select.Trigger class="h-8 w-[70px]">
+									{pageSizeTriggerContent}
+								</Select.Trigger>
+								<Select.Content>
+									<Select.Group>
+										{#each pageSizeOptions as option (option.value)}
+											<Select.Item value={option.value} label={option.label}>
+												{option.label}
+											</Select.Item>
+										{/each}
+									</Select.Group>
+								</Select.Content>
+							</Select.Root>
+						</div>
+						<div class="flex w-[100px] items-center justify-center text-sm font-medium">
+							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+						</div>
+						<div class="flex items-center space-x-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onclick={() => table.setPageIndex(0)}
+								disabled={!table.getCanPreviousPage()}
+							>
+								First
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onclick={() => table.previousPage()}
+								disabled={!table.getCanPreviousPage()}
+							>
+								Previous
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onclick={() => table.nextPage()}
+								disabled={!table.getCanNextPage()}
+							>
+								Next
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onclick={() => table.setPageIndex(table.getPageCount() - 1)}
+								disabled={!table.getCanNextPage()}
+							>
+								Last
+							</Button>
+						</div>
 					</div>
 				</div>
-			</div>
+			{:else if $linksQuery.isError}
+				<div class="rounded-md border p-8 text-center">
+					<p class="text-muted-foreground">Failed to load links. Please try again.</p>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

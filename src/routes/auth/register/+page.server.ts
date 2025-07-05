@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private';
+import { createServerApiClient } from '$lib/api/server-client.js';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -25,18 +25,17 @@ export const actions: Actions = {
 		}
 
 		try {
-			const apiBaseUrl = env.API_BASE_URL || 'http://localhost:3000';
-			const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ email, username, name, password })
+			const apiClient = createServerApiClient();
+			const response = await apiClient.post('/api/auth/register', {
+				email,
+				username,
+				name,
+				password
 			});
 
-			const result = await response.json();
+			const result = response.data;
 
-			if (!response.ok || result.error !== null) {
+			if (result.error !== null) {
 				return fail(response.status || 400, {
 					error: result.message || 'Registration failed',
 					values: { email, username, name }
@@ -51,8 +50,17 @@ export const actions: Actions = {
 					'Registration successful! Please check your email to verify your account.',
 				user: result.data
 			};
-		} catch (err) {
+		} catch (err: any) {
 			console.error('Registration error:', err);
+			
+			if (err.response) {
+				const errorResult = err.response.data || {};
+				return fail(err.response.status, {
+					error: errorResult.message || errorResult.error || 'Registration failed',
+					values: { email, username, name }
+				});
+			}
+			
 			return fail(500, {
 				error: 'An unexpected error occurred during registration',
 				values: { email, username, name }
