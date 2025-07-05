@@ -82,9 +82,7 @@
 		{ value: '40', label: '40' },
 		{ value: '50', label: '50' }
 	];
-
 	let pageSizeValue = $state('10');
-
 	const pageSizeTriggerContent = $derived(
 		pageSizeOptions.find((option) => option.value === pageSizeValue)?.label ?? '10'
 	);
@@ -108,26 +106,6 @@
 			data.sessionToken!
 		)
 	);
-	// const linksQuery = $derived(
-	// 	createQuery({
-	// 		queryKey: ['links', debouncedSearchValue, pagination.pageIndex, pagination.pageSize],
-	// 		queryFn: () =>
-	// 			fetchLinks(
-	// 				{
-	// 					search: debouncedSearchValue,
-	// 					page: pagination.pageIndex + 1,
-	// 					per_page: pagination.pageSize
-	// 				},
-	// 				data.sessionToken!
-	// 			),
-	// 		enabled: !!data.sessionToken,
-	// 		staleTime: 5 * 60 * 1000,
-	// 		retry: (failureCount, error: any) => {
-	// 			if (error?.response?.status === 401) return false;
-	// 			return failureCount < 3;
-	// 		}
-	// 	})
-	// );
 
 	// Show toast for errors
 	$effect(() => {
