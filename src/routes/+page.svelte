@@ -2,7 +2,6 @@
 	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import Input from '@/lib/components/ui/input/input.svelte';
 	import { ExternalLink, LogIn, LogOut, User, UserPlus } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
@@ -32,8 +31,6 @@
 				<Card.Title class="flex items-center gap-2">
 					<User class="h-5 w-5" />
 					Welcome back, {data.user.name}!
-					<Input type="text" bind:value={searchValue} />
-					<p>{searchValue}</p>
 				</Card.Title>
 				<Card.Description>Here's what's happening with your account</Card.Description>
 			</Card.Header>
