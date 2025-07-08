@@ -19,8 +19,6 @@ export const load: PageServerLoad = async ({ params, fetch, cookies, locals, url
 		const response = await fetch(`${apiBaseUrl}/api/auth/verify/${token}`);
 		const result: UserAuthResponse = await response.json();
 
-		console.log(result);
-
 		// If verification is successful, automatically log the user in
 		if (response.ok && result.code === 200 && result.data) {
 			const { token: authToken, expires_in, user } = result.data;

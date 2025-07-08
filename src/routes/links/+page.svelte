@@ -56,14 +56,14 @@
 	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 	$effect(() => {
-		console.log('searchValue changed to:', searchValue);
+		// console.log('searchValue changed to:', searchValue);
 		if (debounceTimer) {
 			clearTimeout(debounceTimer);
 		}
 
 		debounceTimer = setTimeout(() => {
 			debouncedSearchValue = searchValue;
-			console.log('Updated debouncedSearchValue to:', searchValue);
+			// console.log('Updated debouncedSearchValue to:', searchValue);
 		}, 300);
 
 		return () => {
@@ -214,7 +214,12 @@
 		{
 			id: 'actions',
 			enableHiding: false,
-			cell: ({ row }) => renderComponent(DataTableRowActions, { link: row.original, baseUrl })
+			cell: ({ row }) =>
+				renderComponent(DataTableRowActions, {
+					link: row.original,
+					baseUrl,
+					sessionToken: data.sessionToken!
+				})
 		}
 	];
 
