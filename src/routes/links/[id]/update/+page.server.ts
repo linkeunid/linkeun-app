@@ -104,8 +104,6 @@ export const actions: Actions = {
 				link: responseData.data || responseData
 			};
 		} catch (error: any) {
-			console.error('Error updating link:', error);
-
 			if (error.response) {
 				// API responded with error status
 				const errorResult = error.response.data || {};
