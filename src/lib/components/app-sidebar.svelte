@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import { Link2Icon, Nut, WrenchIcon } from '@lucide/svelte';
 	// This is sample data.
 	const data = {
 		teams: [
@@ -33,6 +34,87 @@
 						title: 'Create Link',
 						url: '/links/create'
 					}
+				]
+			},
+			{
+				title: 'Tools',
+				url: '#',
+				icon: WrenchIcon,
+				isActive: false,
+				items: [
+					{
+						title: 'All Tools',
+						url: '/tools'
+					},
+					{
+						title: 'Text Counter',
+						url: '/tools/text-counter'
+					},
+					{
+						title: 'QR Generator',
+						url: '/tools/qr-generator'
+					},
+					{
+						title: 'Password Generator',
+						url: '/tools/password-generator'
+					},
+					{
+						title: 'Base64 Encoder/Decoder',
+						url: '/tools/base64'
+					},
+					{
+						title: 'JSON Formatter',
+						url: '/tools/json-formatter'
+					},
+					{
+						title: 'Text Diff Analyzer',
+						url: '/tools/text-diff'
+					},
+					{
+						title: 'URL Encoder/Decoder',
+						url: '/tools/url-encoder'
+					},
+					{
+						title: 'Timestamp Converter',
+						url: '/tools/timestamp-converter'
+					},
+					{
+						title: 'Lorem Ipsum Generator',
+						url: '/tools/lorem-ipsum'
+					},
+					{
+						title: 'Fake Data Generator',
+						url: '/tools/fake-data'
+					},
+					{
+						title: 'ASCII Art Generator',
+						url: '/tools/ascii-art'
+					},
+					{
+						title: 'Open Graph Generator',
+						url: '/tools/open-graph'
+					},
+					{
+						title: 'Barcode Generator',
+						url: '/tools/barcode-generator'
+					},
+					{
+						title: 'Table Viewer',
+						url: '/tools/table-viewer'
+					},
+					{
+						title: 'Binary Clock',
+						url: '/tools/binary-clock'
+					},
+					{
+						title: 'Text Encryption',
+						url: '/tools/text-encrypt'
+					}
+					// WIP: Markdown Editor - temporarily disabled for development
+					// {
+					//		title: 'Markdown Editor',
+					//		url: '/tools/markdown-editor'
+					// }
 				]
 			}
 			// {
@@ -124,7 +206,7 @@
 <script lang="ts">
 	import type { User } from '$lib/../types/user-auth.type';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { LayoutDashboard, Link2Icon, Nut } from '@lucide/svelte';
+	import { LayoutDashboard } from '@lucide/svelte';
 	import type { ComponentProps } from 'svelte';
 	import NavMain from './nav-main.svelte';
 	import NavProjects from './nav-projects.svelte';

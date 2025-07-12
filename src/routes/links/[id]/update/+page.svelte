@@ -5,7 +5,9 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import { useQueryClient } from '@tanstack/svelte-query';
+	import EditIcon from '@lucide/svelte/icons/edit';
 	import { toast } from 'svelte-sonner';
 	import type { ActionData, PageData } from './$types';
 
@@ -35,11 +37,13 @@
 	<meta name="description" content="Update your shortened link settings and configuration." />
 </svelte:head>
 
-<div class="container mx-auto max-w-2xl py-10">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold tracking-tight">Update Link</h1>
-		<p class="text-muted-foreground">Modify your shortened link settings and configuration.</p>
-	</div>
+<PageHeader 
+	title="Update Link" 
+	subtitle="Modify your shortened link settings and configuration." 
+	icon={EditIcon} 
+/>
+
+<div class="container mx-auto max-w-2xl px-4 py-8">
 
 	{#if data.notLoggedIn}
 		<div class="mt-6 flex flex-col items-center justify-center py-12">

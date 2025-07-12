@@ -21,8 +21,11 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
+	import PageContainer from '$lib/components/ui/page-container.svelte';
+	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import { useLinks } from '@/lib/hooks/useLinks';
 	import ArrowDownNarrowWideIcon from '@lucide/svelte/icons/arrow-down-narrow-wide';
+	import LinkIcon from '@lucide/svelte/icons/link';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import ArrowUpNarrowWideIcon from '@lucide/svelte/icons/arrow-up-narrow-wide';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -295,16 +298,26 @@
 	);
 </script>
 
-<div class="container mx-auto py-10">
-	<div class="flex items-center justify-between">
-		<div>
-			<h1 class="text-3xl font-bold tracking-tight">My Links</h1>
-			<p class="text-muted-foreground">Manage your shortened links and track their performance.</p>
-		</div>
-		{#if !data.notLoggedIn}
-			<Button href="/links/create" class="ml-auto">Create New Link</Button>
-		{/if}
-	</div>
+{#if !data.notLoggedIn}
+	<PageHeader 
+		title="My Links" 
+		subtitle="Manage your shortened links and track their performance." 
+		icon={LinkIcon}
+	>
+		{#snippet actions()}
+			<Button href="/links/create">Create New Link</Button>
+		{/snippet}
+	</PageHeader>
+{:else}
+	<PageHeader 
+		title="My Links" 
+		subtitle="Manage your shortened links and track their performance." 
+		icon={LinkIcon}
+	/>
+{/if}
+
+<PageContainer>
+	{#snippet children()}
 
 	{#if data.notLoggedIn}
 		<div class="mt-6 flex flex-col items-center justify-center py-12">
@@ -494,4 +507,6 @@
 			{/if}
 		</div>
 	{/if}
-</div>
+
+	{/snippet}
+</PageContainer>

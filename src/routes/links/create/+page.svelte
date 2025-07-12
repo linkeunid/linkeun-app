@@ -5,7 +5,10 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import PageContainer from '$lib/components/ui/page-container.svelte';
+	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import { useQueryClient } from '@tanstack/svelte-query';
+	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { toast } from 'svelte-sonner';
 	import type { ActionData, PageData } from './$types';
 
@@ -29,11 +32,13 @@
 	});
 </script>
 
-<div class="container mx-auto max-w-2xl py-10">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold tracking-tight">Create New Link</h1>
-		<p class="text-muted-foreground">Create a shortened link for your URL.</p>
-	</div>
+<PageHeader 
+	title="Create New Link" 
+	subtitle="Create a shortened link for your URL." 
+	icon={PlusIcon} 
+/>
+
+<div class="container mx-auto max-w-2xl px-4 py-8">
 
 	{#if data.notLoggedIn}
 		<div class="mt-6 flex flex-col items-center justify-center py-12">
@@ -138,4 +143,5 @@
 			</Card.Content>
 		</Card.Root>
 	{/if}
+
 </div>
