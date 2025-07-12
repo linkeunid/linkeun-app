@@ -11,6 +11,8 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Switch } from '$lib/components/ui/switch';
+	import { Slider } from '$lib/components/ui/slider/index.js';
+	import { Progress } from '$lib/components/ui/progress/index.js';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import CheckIcon from '@lucide/svelte/icons/check';
@@ -171,14 +173,17 @@
 				<CardContent class="space-y-6">
 					<div class="space-y-2">
 						<Label for="length">Password Length: {length}</Label>
-						<Input
-							id="length"
-							type="range"
+						<Slider
+							type="single"
 							bind:value={length}
-							min="8"
-							max="128"
-							step="1"
+							min={8}
+							max={128}
+							step={1}
 							class="w-full"
+							onValueChange={(value: number) => {
+								length = value;
+								generatePassword();
+							}}
 						/>
 						<div class="text-muted-foreground flex justify-between text-sm">
 							<span>8</span>
@@ -192,29 +197,49 @@
 						<h4 class="text-sm font-medium">Character Types</h4>
 
 						<div class="flex items-center space-x-2">
-							<Switch id="uppercase" bind:checked={includeUppercase} />
+							<Switch 
+								id="uppercase" 
+								bind:checked={includeUppercase} 
+								onCheckedChange={() => generatePassword()}
+							/>
 							<Label for="uppercase">Uppercase Letters (A-Z)</Label>
 						</div>
 
 						<div class="flex items-center space-x-2">
-							<Switch id="lowercase" bind:checked={includeLowercase} />
+							<Switch 
+								id="lowercase" 
+								bind:checked={includeLowercase}
+								onCheckedChange={() => generatePassword()}
+							/>
 							<Label for="lowercase">Lowercase Letters (a-z)</Label>
 						</div>
 
 						<div class="flex items-center space-x-2">
-							<Switch id="numbers" bind:checked={includeNumbers} />
+							<Switch 
+								id="numbers" 
+								bind:checked={includeNumbers}
+								onCheckedChange={() => generatePassword()}
+							/>
 							<Label for="numbers">Numbers (0-9)</Label>
 						</div>
 
 						<div class="flex items-center space-x-2">
-							<Switch id="symbols" bind:checked={includeSymbols} />
+							<Switch 
+								id="symbols" 
+								bind:checked={includeSymbols}
+								onCheckedChange={() => generatePassword()}
+							/>
 							<Label for="symbols">Symbols (!@#$%^&*)</Label>
 						</div>
 
 						<Separator />
 
 						<div class="flex items-center space-x-2">
-							<Switch id="exclude-similar" bind:checked={excludeSimilar} />
+							<Switch 
+								id="exclude-similar" 
+								bind:checked={excludeSimilar}
+								onCheckedChange={() => generatePassword()}
+							/>
 							<Label for="exclude-similar">Exclude Similar Characters (i, l, 1, L, o, 0, O)</Label>
 						</div>
 					</div>
@@ -252,12 +277,10 @@
 									{passwordStrength().label}
 								</span>
 							</div>
-							<div class="bg-muted h-2 w-full rounded-full">
-								<div
-									class="h-2 rounded-full bg-current {passwordStrength().color}"
-									style="width: {(passwordStrength().score / 8) * 100}%"
-								></div>
-							</div>
+							<Progress 
+								value={(passwordStrength().score / 8) * 100} 
+								class="w-full [&>div]:transition-all [&>div]:{passwordStrength().color.replace('text-', 'bg-')}"
+							/>
 						</div>
 					{/if}
 				</CardContent>
