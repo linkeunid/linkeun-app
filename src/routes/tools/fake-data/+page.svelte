@@ -6,6 +6,8 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import DatabaseIcon from '@lucide/svelte/icons/database';
@@ -33,6 +35,15 @@
 		useFaker: boolean;
 	}
 
+	const fieldTypeOptions = [
+		{ value: 'text', label: 'Text' },
+		{ value: 'number', label: 'Number' },
+		{ value: 'boolean', label: 'Boolean' },
+		{ value: 'array', label: 'Array' },
+		{ value: 'object', label: 'Object' },
+		{ value: 'function', label: 'Function' }
+	] as const;
+
 	let customFields = $state<CustomField[]>([]);
 	let newFieldName = $state('');
 	let newFieldType = $state<CustomFieldType>('text');
@@ -43,6 +54,15 @@
 	let editFieldType = $state<CustomFieldType>('text');
 	let editFieldValue = $state('');
 	let editFieldUseFaker = $state(true);
+
+	// Derived trigger content for select components
+	const newFieldTypeTrigger = $derived(
+		fieldTypeOptions.find((f) => f.value === newFieldType)?.label ?? "Select type"
+	);
+	
+	const editFieldTypeTrigger = $derived(
+		fieldTypeOptions.find((f) => f.value === editFieldType)?.label ?? "Select type"
+	);
 
 	// Data type selections
 	let selectedFields = $state({
@@ -503,14 +523,18 @@
 								placeholder="Field name"
 								class="text-sm"
 							/>
-							<select bind:value={newFieldType} class="text-sm rounded-md border border-input bg-background text-foreground px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-								<option value="text">Text</option>
-								<option value="number">Number</option>
-								<option value="boolean">Boolean</option>
-								<option value="array">Array</option>
-								<option value="object">Object</option>
-								<option value="function">Function</option>
-							</select>
+							<Select.Root type="single" bind:value={newFieldType}>
+								<Select.Trigger class="w-full text-sm">
+									{newFieldTypeTrigger}
+								</Select.Trigger>
+								<Select.Content>
+									{#each fieldTypeOptions as option (option.value)}
+										<Select.Item value={option.value} label={option.label}>
+											{option.label}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
 							<Input
 								type="text"
 								bind:value={newFieldValue}
@@ -534,14 +558,18 @@
 														placeholder="Field name"
 														class="text-sm"
 													/>
-													<select bind:value={editFieldType} class="text-sm rounded-md border border-input bg-background text-foreground px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-														<option value="text">Text</option>
-														<option value="number">Number</option>
-														<option value="boolean">Boolean</option>
-														<option value="array">Array</option>
-														<option value="object">Object</option>
-														<option value="function">Function</option>
-													</select>
+													<Select.Root type="single" bind:value={editFieldType}>
+														<Select.Trigger class="w-full text-sm">
+															{editFieldTypeTrigger}
+														</Select.Trigger>
+														<Select.Content>
+															{#each fieldTypeOptions as option (option.value)}
+																<Select.Item value={option.value} label={option.label}>
+																	{option.label}
+																</Select.Item>
+															{/each}
+														</Select.Content>
+													</Select.Root>
 													<div class="flex items-center space-x-2">
 														<Checkbox bind:checked={editFieldUseFaker} id={`edit-use-faker-${field.id}`} />
 														<Label for={`edit-use-faker-${field.id}`} class="text-xs whitespace-nowrap">Use Faker</Label>
@@ -639,12 +667,12 @@
 				</CardHeader>
 				<CardContent>
 					<div class="space-y-4">
-						<textarea
+						<Textarea
 							value={generatedData}
 							readonly
 							placeholder="Generated fake data will appear here..."
-							class="min-h-[500px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y font-mono"
-						></textarea>
+							class="min-h-[500px] resize-y font-mono"
+						/>
 
 						<div class="flex justify-between items-center text-sm text-muted-foreground">
 							<span>Generated {outputFormat.toUpperCase()} format</span>
