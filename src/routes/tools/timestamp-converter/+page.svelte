@@ -639,7 +639,7 @@
 											<div>
 												<p class="text-sm font-medium">Parsed Date:</p>
 												<p class="text-sm text-muted-foreground">
-													{DateTime.fromMillis(millisToTimestamp(parseFloat(conversion.result)) * (timestampUnit === 'seconds' ? 1000 : timestampUnit === 'milliseconds' ? 1 : timestampUnit === 'microseconds' ? 0.001 : 0.000001)).toFormat('cccc, MMMM d, yyyy h:mm:ss a ZZZZ')}
+													{DateTime.fromMillis(timestampToMillis(parseFloat(conversion.result))).toFormat('cccc, MMMM d, yyyy h:mm:ss a ZZZZ')}
 												</p>
 											</div>
 
