@@ -23,6 +23,7 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
+	import BackendWarningBanner from '$lib/components/backend-warning-banner.svelte';
 	import { useLinks } from '@/lib/hooks/useLinks';
 	import ArrowDownNarrowWideIcon from '@lucide/svelte/icons/arrow-down-narrow-wide';
 	import LinkIcon from '@lucide/svelte/icons/link';
@@ -318,6 +319,8 @@
 
 <PageContainer>
 	{#snippet children()}
+	
+	<BackendWarningBanner />
 
 	{#if data.notLoggedIn}
 		<div class="mt-6 flex flex-col items-center justify-center py-12">

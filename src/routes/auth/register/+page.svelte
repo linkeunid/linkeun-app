@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import PageContainer from '@/lib/components/ui/page-container.svelte';
 	import PageHeader from '@/lib/components/ui/page-header.svelte';
+	import BackendWarningBanner from '$lib/components/backend-warning-banner.svelte';
 	import { siteConfig } from '@/lib/config/site';
 	import {
 		ArrowLeft,
@@ -32,6 +33,7 @@
 
 <PageContainer>
 	{#snippet children()}
+		<BackendWarningBanner />
 		<div class="flex items-center justify-center">
 			<div class="w-full max-w-sm">
 				<!-- Back to Home Link -->

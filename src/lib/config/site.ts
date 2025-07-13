@@ -1,6 +1,7 @@
 export const siteConfig = {
 	siteName: 'Linkeun Mono',
-	siteDescription: 'All-in-one platform for link management and developer tools. Shorten URLs, track analytics, and access 16+ powerful utilities including QR generators, JSON formatters, and text analyzers.',
+	siteDescription:
+		'All-in-one platform for link management and developer tools. Shorten URLs, track analytics, and access 16+ powerful utilities including QR generators, JSON formatters, and text analyzers.',
 	siteUrl: 'https://linkeun.app',
 	siteKeywords: [
 		'link shortener',
@@ -19,10 +20,14 @@ export const siteConfig = {
 		'link analytics',
 		'click tracking'
 	],
-	siteAuthor: 'Hanivan Rizky S',
-	siteAuthorEmail: 'hanivan@linkeun.com',
-	siteAuthorUrl: 'https://hanivan.my.id',
-	siteAuthorGithub: 'https://github.com/Hanivan',
+	author: {
+		name: 'Hanivan Rizky S',
+		email: 'hanivan@linkeun.com',
+		url: 'https://hanivan.my.id',
+		github: 'https://github.com/Hanivan'
+	},
+	siteGithub: 'https://github.com/linkeunid',
+	siteEmail: 'support@linkeun.com',
 	siteLanguage: 'en',
 	siteLocale: 'en_US',
 	siteType: 'website',
@@ -35,7 +40,7 @@ export const siteConfig = {
 	backgroundColor: '#ffffff',
 	analytics: {
 		googleAnalyticsId: '', // Add your GA4 ID here
-		microsoftClarityId: '', // Add your Clarity ID here
+		microsoftClarityId: '' // Add your Clarity ID here
 	},
 	social: {
 		github: 'https://github.com/Hanivan/linkeun-app',

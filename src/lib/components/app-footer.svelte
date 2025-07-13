@@ -31,6 +31,12 @@
 
 			<!-- Links -->
 			<div class="flex flex-wrap justify-center gap-4 text-sm md:justify-end">
+				<a
+					href={`mailto:${siteConfig.siteEmail}`}
+					class="text-muted-foreground hover:text-foreground transition-colors"
+				>
+					Contact
+				</a>
 				<a href="/tools" class="text-muted-foreground hover:text-foreground transition-colors">
 					Tools
 				</a>
@@ -38,7 +44,7 @@
 					Links
 				</a>
 				<a
-					href="https://github.com"
+					href={siteConfig.siteGithub}
 					target="_blank"
 					rel="noopener noreferrer"
 					class="text-muted-foreground hover:text-foreground transition-colors"
