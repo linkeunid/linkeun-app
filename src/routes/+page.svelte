@@ -244,7 +244,9 @@
 					class="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-100 dark:border-blue-800 dark:from-blue-950/50 dark:to-indigo-950/50"
 				>
 					<Card.Header class="pb-4 text-center">
-						<Card.Title class="font-sans text-2xl font-bold">Welcome to LinkeunApp</Card.Title>
+						<Card.Title class="font-sans text-2xl font-bold"
+							>Welcome to {siteConfig.siteName}</Card.Title
+						>
 						<Card.Description class="text-lg">
 							Your all-in-one platform for link management and developer tools
 						</Card.Description>

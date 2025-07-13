@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import AppFooter from '$lib/components/app-footer.svelte';
+	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import ThemeSwitcher from '$lib/components/theme-switcher.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { segmentToLabel } from '$lib/config/breadcrumb-labels';
-	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/components/ui/sonner';
+	import { segmentToLabel } from '$lib/config/breadcrumb-labels';
+	import { siteConfig } from '@/lib/config/site';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
+	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
 
 	// Create QueryClient instance
@@ -17,9 +18,9 @@
 		defaultOptions: {
 			queries: {
 				staleTime: 5 * 60 * 1000, // 5 minutes
-				refetchOnWindowFocus: false,
-			},
-		},
+				refetchOnWindowFocus: false
+			}
+		}
 	});
 
 	let { children, data } = $props();
@@ -73,7 +74,7 @@
 </script>
 
 <svelte:head>
-	<title>LinkeunApp</title>
+	<title>{siteConfig.siteName}</title>
 </svelte:head>
 
 <ModeWatcher />

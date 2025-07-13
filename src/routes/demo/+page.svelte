@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { siteConfig } from '@/lib/config/site';
 	import { Globe, ShieldCheck, Wrench } from '@lucide/svelte';
 </script>
 
 <svelte:head>
-	<title>Demo - LinkeunApp</title>
+	<title>Demo - {siteConfig.siteName}</title>
 	<meta
 		name="description"
 		content="Explore various demos including Lucia authentication and Paraglide internationalization features."
 	/>
-	<meta property="og:title" content="Demo - LinkeunApp" />
+	<meta property="og:title" content="Demo - {siteConfig.siteName}" />
 	<meta
 		property="og:description"
 		content="Explore various demos including Lucia authentication and Paraglide internationalization features."

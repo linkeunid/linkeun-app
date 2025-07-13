@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
 	import { setLocale } from '$lib/paraglide/runtime';
+	import { siteConfig } from '@/lib/config/site';
 </script>
 
 <svelte:head>
-	<title>Paraglide Demo - LinkeunApp</title>
+	<title>Paraglide Demo - {siteConfig.siteName}</title>
 	<meta
 		name="description"
 		content="Internationalization demo using Paraglide for multi-language support with real-time language switching."
 	/>
-	<meta property="og:title" content="Paraglide Demo - LinkeunApp" />
+	<meta property="og:title" content="Paraglide Demo - {siteConfig.siteName}" />
 	<meta
 		property="og:description"
 		content="Internationalization demo using Paraglide for multi-language support with real-time language switching."

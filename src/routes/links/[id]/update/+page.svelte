@@ -8,6 +8,7 @@
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import BackendWarningBanner from '@/lib/components/backend-warning-banner.svelte';
 	import PageContainer from '@/lib/components/ui/page-container.svelte';
+	import { siteConfig } from '@/lib/config/site';
 	import EditIcon from '@lucide/svelte/icons/edit';
 	import { useQueryClient } from '@tanstack/svelte-query';
 	import { toast } from 'svelte-sonner';
@@ -35,7 +36,7 @@
 </script>
 
 <svelte:head>
-	<title>Update Link - LinkeunApp</title>
+	<title>Update Link - {siteConfig.siteName}</title>
 	<meta name="description" content="Update your shortened link settings and configuration." />
 </svelte:head>
 

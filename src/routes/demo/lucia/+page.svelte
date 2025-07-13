@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { siteConfig } from '@/lib/config/site';
 	import { Key, LogOut, ShieldCheck, User } from '@lucide/svelte';
 	import type { PageServerData } from './$types';
 
@@ -9,12 +10,12 @@
 </script>
 
 <svelte:head>
-	<title>Lucia Demo - LinkeunApp</title>
+	<title>Lucia Demo - {siteConfig.siteName}</title>
 	<meta
 		name="description"
 		content="Authentication demo using Lucia for secure user sessions and login management."
 	/>
-	<meta property="og:title" content="Lucia Demo - LinkeunApp" />
+	<meta property="og:title" content="Lucia Demo - {siteConfig.siteName}" />
 	<meta
 		property="og:description"
 		content="Authentication demo using Lucia for secure user sessions and login management."

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { siteConfig } from '@/lib/config/site';
 	import { ArrowLeft, LogIn, RefreshCw, XCircle } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
@@ -8,15 +9,15 @@
 </script>
 
 <svelte:head>
-	<title>Email Verification - LinkeunApp</title>
+	<title>Email Verification - {siteConfig.siteName}</title>
 	<meta
 		name="description"
-		content="Verify your email address to activate your LinkeunApp account."
+		content="Verify your email address to activate your {siteConfig.siteName} account."
 	/>
-	<meta property="og:title" content="Email Verification - LinkeunApp" />
+	<meta property="og:title" content="Email Verification - {siteConfig.siteName}" />
 	<meta
 		property="og:description"
-		content="Verify your email address to activate your LinkeunApp account."
+		content="Verify your email address to activate your {siteConfig.siteName} account."
 	/>
 	<meta property="og:type" content="website" />
 </svelte:head>

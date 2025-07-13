@@ -4,6 +4,7 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { siteConfig } from '@/lib/config/site';
 	import { ArrowLeft, Lock, LogIn, User, UserPlus } from '@lucide/svelte';
 	import type { ActionData } from './$types';
 
@@ -11,9 +12,9 @@
 </script>
 
 <svelte:head>
-	<title>Lucia Login - LinkeunApp</title>
+	<title>Lucia Login - {siteConfig.siteName}</title>
 	<meta name="description" content="Login and registration demo for Lucia authentication system." />
-	<meta property="og:title" content="Lucia Login - LinkeunApp" />
+	<meta property="og:title" content="Lucia Login - {siteConfig.siteName}" />
 	<meta
 		property="og:description"
 		content="Login and registration demo for Lucia authentication system."

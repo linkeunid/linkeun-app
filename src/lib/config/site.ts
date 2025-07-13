@@ -2,7 +2,7 @@ export const siteConfig = {
 	siteName: 'Linkeun Mono',
 	siteDescription:
 		'All-in-one platform for link management and developer tools. Shorten URLs, track analytics, and access 16+ powerful utilities including QR generators, JSON formatters, and text analyzers.',
-	siteUrl: 'https://linkeun.app',
+	siteUrl: 'https://app.linkeun.com',
 	siteKeywords: [
 		'link shortener',
 		'URL shortener',
@@ -31,7 +31,7 @@ export const siteConfig = {
 	siteLanguage: 'en',
 	siteLocale: 'en_US',
 	siteType: 'website',
-	siteTwitter: '@linkeunapp',
+	siteTwitter: '@linkeunid',
 	ogImage: '/og-image.png',
 	favicon: '/favicon.ico',
 	appleTouchIcon: '/apple-touch-icon.png',
@@ -43,9 +43,9 @@ export const siteConfig = {
 		microsoftClarityId: '' // Add your Clarity ID here
 	},
 	social: {
-		github: 'https://github.com/Hanivan/linkeun-app',
-		twitter: 'https://twitter.com/linkeunapp',
-		linkedin: 'https://linkedin.com/company/linkeunapp'
+		github: 'https://github.com/linkeunid/linkeun-app',
+		twitter: 'https://twitter.com/linkeunid',
+		linkedin: 'https://linkedin.com/company/linkeunid'
 	},
 	features: [
 		'Link Shortening & Management',
