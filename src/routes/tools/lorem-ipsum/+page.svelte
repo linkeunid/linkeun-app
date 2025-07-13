@@ -6,6 +6,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import TypeIcon from '@lucide/svelte/icons/type';
@@ -238,12 +239,12 @@
 				</CardHeader>
 				<CardContent>
 					<div class="space-y-4">
-						<textarea
+						<Textarea
 							value={generatedText}
 							readonly
 							placeholder="Generated lorem ipsum will appear here..."
-							class="min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
-						></textarea>
+							class="min-h-[400px] resize-y"
+						/>
 
 						<div class="flex justify-between items-center text-sm text-muted-foreground">
 							<span>Click to select all text</span>
