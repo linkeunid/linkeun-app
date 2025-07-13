@@ -350,12 +350,12 @@
 					</CardHeader>
 					<CardContent>
 						<div class="space-y-4">
-							<textarea
+							<Textarea
 								value={generatedTags()}
 								readonly
 								placeholder="Generated meta tags will appear here..."
-								class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[300px] w-full resize-y rounded-md border px-3 py-2 font-mono text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-							></textarea>
+								class="min-h-[300px] resize-y font-mono"
+							/>
 
 							<div class="flex items-center justify-between">
 								<span class="text-muted-foreground text-sm"
