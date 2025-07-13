@@ -14,7 +14,7 @@
 			// 		plan: 'Startup'
 			// 	},
 			{
-				name: 'Linkeun Mono.',
+				name: siteConfig.siteName,
 				logo: Nut,
 				plan: 'Free'
 			}
@@ -208,6 +208,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { LayoutDashboard } from '@lucide/svelte';
 	import type { ComponentProps } from 'svelte';
+	import { siteConfig } from '../config/site';
 	import NavMain from './nav-main.svelte';
 	import NavProjects from './nav-projects.svelte';
 	import NavUser from './nav-user.svelte';

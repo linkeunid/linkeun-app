@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
+	import AppFooter from '$lib/components/app-footer.svelte';
 	import ThemeSwitcher from '$lib/components/theme-switcher.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
@@ -110,6 +111,7 @@
 			<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 				{@render children()}
 			</div>
+			<AppFooter />
 		</Sidebar.Inset>
 	</Sidebar.Provider>
 </QueryClientProvider>

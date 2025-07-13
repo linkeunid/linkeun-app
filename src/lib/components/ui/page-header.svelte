@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { siteConfig } from '@/lib/config/site';
 	import type { Component, Snippet } from 'svelte';
 
 	interface Props {
@@ -10,6 +11,22 @@
 
 	let { title, subtitle, icon, actions }: Props = $props();
 </script>
+
+<svelte:head>
+	<title>{title} - {siteConfig.siteName}</title>
+	<meta
+		name="description"
+		content={subtitle ??
+			'Welcome to {siteConfig.siteName} - A modern SvelteKit application with link management and developer tools.'}
+	/>
+	<meta property="og:title" content={`${title} - {siteConfig.siteName}`} />
+	<meta
+		property="og:description"
+		content={subtitle ??
+			`Welcome to ${siteConfig.siteName} - A modern SvelteKit application with link management and developer tools.`}
+	/>
+	<meta property="og:type" content="website" />
+</svelte:head>
 
 <div class="container mx-auto pt-10 pb-0">
 	<div class="flex items-center justify-between">
