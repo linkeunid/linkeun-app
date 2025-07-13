@@ -14,6 +14,7 @@
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 	import TypeIcon from '@lucide/svelte/icons/type';
@@ -171,12 +172,17 @@
 		}
 	};
 
-	type Style = 'standard' | 'shadow' | 'double';
+	type Style = 'standard' | 'shadow' | 'double' | 'neon' | 'gradient' | 'outline' | 'retro' | 'matrix';
 
 	const styles: Record<Style, { name: string; description: string }> = {
 		standard: { name: 'Standard', description: 'Clean ASCII art' },
-		shadow: { name: 'Shadow', description: 'Add shadow effect' },
-		double: { name: 'Double', description: 'Double-line effect' }
+		shadow: { name: 'Shadow', description: 'Drop shadow effect' },
+		double: { name: 'Double', description: 'Double-line thickness' },
+		neon: { name: 'Neon', description: 'Glowing neon style' },
+		gradient: { name: 'Gradient', description: 'Fading gradient effect' },
+		outline: { name: 'Outline', description: 'Outlined border style' },
+		retro: { name: 'Retro', description: 'Vintage computer terminal style' },
+		matrix: { name: 'Matrix', description: 'Digital matrix style' }
 	};
 
 	function generateAsciiArt(): void {
@@ -209,25 +215,111 @@
 		}
 
 		// Apply style effects
-		let result = lines.join('\n');
-
-		if (selectedStyle === 'shadow') {
-			// Add shadow effect by duplicating and offsetting
-			const shadowLines = lines.map((line) => line.replace(/[^\s]/g, '▓').replace(/^/, ' '));
-			const combinedLines: string[] = [];
-			for (let i = 0; i < lines.length; i++) {
-				combinedLines.push(lines[i]);
-				if (i < lines.length - 1) {
-					combinedLines.push(shadowLines[i + 1] || '');
-				}
-			}
-			result = combinedLines.join('\n');
-		} else if (selectedStyle === 'double') {
-			// Double each line
-			result = lines.map((line) => line + '\n' + line).join('\n');
-		}
-
+		let result = applyStyleEffect(lines, selectedStyle as Style);
 		generatedArt = result;
+	}
+
+	function applyStyleEffect(lines: string[], style: Style): string {
+		switch (style) {
+			case 'standard':
+				return lines.join('\n');
+
+			case 'shadow':
+				// Enhanced shadow with proper depth
+				const shadowLines = lines.map((line) => ' ' + line.replace(/[^\s]/g, '▓'));
+				const shadowResult: string[] = [];
+				for (let i = 0; i < lines.length; i++) {
+					shadowResult.push(lines[i]);
+				}
+				shadowResult.push(''); // Add spacing
+				for (let i = 0; i < shadowLines.length; i++) {
+					shadowResult.push(shadowLines[i]);
+				}
+				return shadowResult.join('\n');
+
+			case 'double':
+				// Thicker appearance by duplicating characters
+				return lines.map((line) => 
+					line.replace(/[^\s]/g, (char) => char + char)
+				).join('\n');
+
+			case 'neon':
+				// Neon glow effect with surrounding dots
+				const neonLines: string[] = [];
+				// Top border
+				neonLines.push('.' + '.'.repeat(Math.max(...lines.map(l => l.length)) + 2) + '.');
+				for (const line of lines) {
+					neonLines.push('.' + ' ' + line + ' ' + '.');
+				}
+				// Bottom border
+				neonLines.push('.' + '.'.repeat(Math.max(...lines.map(l => l.length)) + 2) + '.');
+				return neonLines.join('\n');
+
+			case 'gradient':
+				// Gradient effect using different intensity characters
+				const gradientChars = ['░', '▒', '▓', '█'];
+				return lines.map((line, lineIndex) => {
+					const intensity = Math.floor((lineIndex / lines.length) * gradientChars.length);
+					const gradientChar = gradientChars[Math.min(intensity, gradientChars.length - 1)];
+					return line.replace(/[^\s]/g, gradientChar);
+				}).join('\n');
+
+			case 'outline':
+				// Outlined effect with borders
+				const outlineLines: string[] = [];
+				const outlineMaxWidth = Math.max(...lines.map(l => l.length));
+				
+				// Top border
+				outlineLines.push('╔' + '═'.repeat(outlineMaxWidth + 2) + '╗');
+				
+				// Content with side borders
+				for (const line of lines) {
+					const paddedLine = line.padEnd(outlineMaxWidth);
+					outlineLines.push('║ ' + paddedLine + ' ║');
+				}
+				
+				// Bottom border
+				outlineLines.push('╚' + '═'.repeat(outlineMaxWidth + 2) + '╝');
+				return outlineLines.join('\n');
+
+			case 'retro':
+				// Retro computer terminal style with classic characters
+				const retroResult: string[] = [];
+				const retroMaxWidth = Math.max(...lines.map(l => l.length));
+				
+				// Add retro terminal header
+				retroResult.push('┌' + '─'.repeat(retroMaxWidth + 4) + '┐');
+				retroResult.push('│  ' + ' '.repeat(retroMaxWidth) + '  │');
+				
+				// Add content with retro styling using hash characters
+				for (const line of lines) {
+					const retroLine = line.replace(/[^\s]/g, '#');
+					const paddedLine = retroLine.padEnd(retroMaxWidth);
+					retroResult.push('│  ' + paddedLine + '  │');
+				}
+				
+				// Add retro terminal footer
+				retroResult.push('│  ' + ' '.repeat(retroMaxWidth) + '  │');
+				retroResult.push('└' + '─'.repeat(retroMaxWidth + 4) + '┘');
+				
+				// Add retro prompt line
+				retroResult.push('');
+				retroResult.push('> READY_');
+				
+				return retroResult.join('\n');
+
+			case 'matrix':
+				// Matrix digital rain effect
+				const matrixChars = ['0', '1', '｡', '｢', '｣', 'ﾊ', 'ﾐ', 'ﾋ', 'ｰ', 'ｳ'];
+				return lines.map((line) => {
+					return line.replace(/[^\s]/g, () => {
+						return matrixChars[Math.floor(Math.random() * matrixChars.length)];
+					});
+				}).join('\n');
+
+			default:
+				return lines.join('\n');
+		}
 	}
 
 	// Generate initial ASCII art
@@ -329,7 +421,7 @@
 							<div class="space-y-2">
 								<Label>Style Effect</Label>
 								<RadioGroup.Root bind:value={selectedStyle}>
-									<div class="space-y-2">
+									<div class="grid grid-cols-2 gap-2">
 										{#each Object.entries(styles) as [key, style]}
 											<div class="flex items-center space-x-2">
 												<RadioGroup.Item value={key} id={key} />
@@ -366,12 +458,12 @@
 					</CardHeader>
 					<CardContent>
 						<div class="space-y-4">
-							<textarea
+							<Textarea
 								value={generatedArt}
 								readonly
 								placeholder="Your ASCII art will appear here..."
-								class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[400px] w-full resize-y rounded-md border px-3 py-2 font-mono text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-							></textarea>
+								class="min-h-[400px] resize-y font-mono"
+							/>
 
 							<div class="text-muted-foreground flex items-center justify-between text-sm">
 								<span>ASCII art preview</span>
@@ -470,8 +562,13 @@
 					<CardContent>
 						<div class="space-y-2 text-sm">
 							<p><strong>Standard:</strong> Clean, basic ASCII art output</p>
-							<p><strong>Shadow:</strong> Adds depth with shadow effects</p>
-							<p><strong>Double:</strong> Creates double-line visual impact</p>
+							<p><strong>Shadow:</strong> Adds depth with drop shadow effects</p>
+							<p><strong>Double:</strong> Creates thick, bold appearance</p>
+							<p><strong>Neon:</strong> Glowing outline effect with borders</p>
+							<p><strong>Gradient:</strong> Fading intensity from light to dark</p>
+							<p><strong>Outline:</strong> Professional border frame styling</p>
+							<p><strong>Retro:</strong> Vintage computer terminal with prompt</p>
+							<p><strong>Matrix:</strong> Digital code rain effect</p>
 						</div>
 					</CardContent>
 				</Card>
