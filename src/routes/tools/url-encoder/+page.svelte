@@ -4,6 +4,8 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Switch } from '$lib/components/ui/switch';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import CopyIcon from '@lucide/svelte/icons/copy';
@@ -16,6 +18,15 @@
 	let inputText = $state('https://example.com/path with spaces?param=value with spaces&other=special chars!@#$%^&*()');
 	let outputText = $state('');
 	let mode = $state<'encode' | 'decode'>('encode');
+	
+	const modeOptions = [
+		{ value: 'encode', label: 'Encode URL' },
+		{ value: 'decode', label: 'Decode URL' }
+	];
+	
+	const triggerContent = $derived(
+		modeOptions.find((m) => m.value === mode)?.label ?? 'Select mode'
+	);
 	let encodeComponents = $state(false);
 	let fileInput: HTMLInputElement;
 
@@ -159,14 +170,18 @@
 				<div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
 					<div class="space-y-2">
 						<Label for="mode">Mode</Label>
-						<select
-							id="mode"
-							bind:value={mode}
-							class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-						>
-							<option value="encode">Encode URL</option>
-							<option value="decode">Decode URL</option>
-						</select>
+						<Select.Root type="single" bind:value={mode}>
+							<Select.Trigger class="w-full">
+								{triggerContent}
+							</Select.Trigger>
+							<Select.Content>
+								{#each modeOptions as option (option.value)}
+									<Select.Item value={option.value} label={option.label}>
+										{option.label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					</div>
 					
 					<div class="flex items-center space-x-2">
@@ -216,11 +231,11 @@
 					<CardDescription>Enter your {mode === 'encode' ? 'original' : 'encoded'} URL here</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<textarea
+					<Textarea
 						bind:value={inputText}
 						placeholder={mode === 'encode' ? 'https://example.com/path with spaces?param=value' : 'https%3A//example.com/path%20with%20spaces%3Fparam%3Dvalue'}
-						class="min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-					></textarea>
+						class="min-h-[300px] font-mono"
+					/>
 					
 					{#if inputText}
 						<div class="space-y-2 text-sm text-muted-foreground">
@@ -250,12 +265,12 @@
 					<CardDescription>The {mode === 'encode' ? 'encoded' : 'decoded'} result</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<textarea
+					<Textarea
 						bind:value={outputText}
 						readonly
 						placeholder="Result will appear here..."
-						class="min-h-[300px] w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-					></textarea>
+						class="min-h-[300px] bg-muted/30 font-mono"
+					/>
 					
 					{#if outputText}
 						<div class="space-y-2 text-sm text-muted-foreground">
