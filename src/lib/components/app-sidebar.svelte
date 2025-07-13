@@ -59,7 +59,7 @@
 						url: '/tools/password-generator'
 					},
 					{
-						title: 'Base64 Encoder/Decoder',
+						title: 'Multi-Format Encoder/Decoder',
 						url: '/tools/base64'
 					},
 					{

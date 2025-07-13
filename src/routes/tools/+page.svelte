@@ -75,9 +75,9 @@
 				<CardHeader>
 					<CardTitle class="flex items-center gap-2">
 						<BinaryIcon class="h-5 w-5" />
-						Base64 Encoder/Decoder
+						Multi-Format Encoder/Decoder
 					</CardTitle>
-					<CardDescription>Encode and decode Base64 strings with URL-safe support</CardDescription>
+					<CardDescription>Encode and decode text using Base64, Base32, and Base16 (Hex) formats</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<Button href="/tools/base64" class="w-full">Open Tool</Button>

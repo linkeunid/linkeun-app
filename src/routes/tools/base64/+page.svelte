@@ -3,14 +3,15 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Switch } from '$lib/components/ui/switch';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import BinaryIcon from '@lucide/svelte/icons/binary';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import DownloadIcon from '@lucide/svelte/icons/download';
-	import FileIcon from '@lucide/svelte/icons/file';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 	import UploadIcon from '@lucide/svelte/icons/upload';
 	import { toast } from 'svelte-sonner';
@@ -18,6 +19,7 @@
 	let inputText = $state('');
 	let outputText = $state('');
 	let mode = $state<'encode' | 'decode'>('encode');
+	let format = $state<'base64' | 'base32' | 'base16'>('base64');
 	let urlSafe = $state(false);
 	let fileInput: HTMLInputElement;
 	let outputAsFile = $state(false);
@@ -31,25 +33,41 @@
 
 		try {
 			if (mode === 'encode') {
-				// Encode to Base64
-				const encoded = btoa(unescape(encodeURIComponent(inputText)));
-				outputText = urlSafe ? encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '') : encoded;
-			} else {
-				// Decode from Base64
-				let input = inputText;
-				if (urlSafe) {
-					// Convert URL-safe back to standard Base64
-					input = input.replace(/-/g, '+').replace(/_/g, '/');
-					// Add padding if needed
-					while (input.length % 4) {
-						input += '=';
-					}
+				if (format === 'base64') {
+					// Encode to Base64
+					const encoded = btoa(new TextEncoder().encode(inputText).reduce((str, byte) => str + String.fromCharCode(byte), ''));
+					outputText = urlSafe ? encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '') : encoded;
+				} else if (format === 'base32') {
+					outputText = encodeBase32(inputText);
+				} else if (format === 'base16') {
+					outputText = Array.from(new TextEncoder().encode(inputText))
+						.map(byte => byte.toString(16).padStart(2, '0'))
+						.join('')
+						.toUpperCase();
 				}
-				const decoded = decodeURIComponent(escape(atob(input)));
-				outputText = decoded;
+			} else {
+				if (format === 'base64') {
+					// Decode from Base64
+					let input = inputText;
+					if (urlSafe) {
+						// Convert URL-safe back to standard Base64
+						input = input.replace(/-/g, '+').replace(/_/g, '/');
+						// Add padding if needed
+						while (input.length % 4) {
+							input += '=';
+						}
+					}
+					const decoded = atob(input);
+					outputText = new TextDecoder().decode(new Uint8Array([...decoded].map(char => char.charCodeAt(0))));
+				} else if (format === 'base32') {
+					outputText = decodeBase32(inputText);
+				} else if (format === 'base16') {
+					const bytes = inputText.replace(/\s/g, '').match(/.{1,2}/g)?.map(hex => parseInt(hex, 16)) || [];
+					outputText = new TextDecoder().decode(new Uint8Array(bytes));
+				}
 			}
 		} catch (error) {
-			outputText = mode === 'decode' ? 'Invalid Base64 input' : '';
+			outputText = mode === 'decode' ? `Invalid ${format.toUpperCase()} input` : '';
 		}
 	});
 
@@ -83,7 +101,7 @@
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = mode === 'encode' ? 'encoded.txt' : 'decoded.txt';
+		a.download = mode === 'encode' ? `encoded_${format}.txt` : `decoded_${format}.txt`;
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
@@ -119,20 +137,80 @@
 		}
 	}
 
+	// Base32 encoding/decoding functions
+	function encodeBase32(input: string): string {
+		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+		const bytes = new TextEncoder().encode(input);
+		let result = '';
+		let buffer = 0;
+		let bitsLeft = 0;
+
+		for (const byte of bytes) {
+			buffer = (buffer << 8) | byte;
+			bitsLeft += 8;
+
+			while (bitsLeft >= 5) {
+				result += alphabet[(buffer >> (bitsLeft - 5)) & 31];
+				bitsLeft -= 5;
+			}
+		}
+
+		if (bitsLeft > 0) {
+			result += alphabet[(buffer << (5 - bitsLeft)) & 31];
+		}
+
+		// Add padding
+		while (result.length % 8 !== 0) {
+			result += '=';
+		}
+
+		return result;
+	}
+
+	function decodeBase32(input: string): string {
+		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+		const cleanInput = input.replace(/=/g, '').toUpperCase();
+		const bytes: number[] = [];
+		let buffer = 0;
+		let bitsLeft = 0;
+
+		for (const char of cleanInput) {
+			const index = alphabet.indexOf(char);
+			if (index === -1) throw new Error('Invalid Base32 character');
+
+			buffer = (buffer << 5) | index;
+			bitsLeft += 5;
+
+			if (bitsLeft >= 8) {
+				bytes.push((buffer >> (bitsLeft - 8)) & 255);
+				bitsLeft -= 8;
+			}
+		}
+
+		return new TextDecoder().decode(new Uint8Array(bytes));
+	}
+
 	// Input validation for decode mode
-	const isValidBase64 = $derived(() => {
+	const isValidInput = $derived(() => {
 		if (mode !== 'decode' || !inputText.trim()) return true;
 		
 		try {
-			let input = inputText.trim();
-			if (urlSafe) {
-				input = input.replace(/-/g, '+').replace(/_/g, '/');
-				while (input.length % 4) {
-					input += '=';
+			const input = inputText.trim();
+			if (format === 'base64') {
+				let testInput = input;
+				if (urlSafe) {
+					testInput = input.replace(/-/g, '+').replace(/_/g, '/');
+					while (testInput.length % 4) {
+						testInput += '=';
+					}
 				}
+				return /^[A-Za-z0-9+/]*={0,2}$/.test(testInput);
+			} else if (format === 'base32') {
+				return /^[A-Z2-7=]*$/.test(input.toUpperCase());
+			} else if (format === 'base16') {
+				return /^[0-9A-Fa-f\s]*$/.test(input) && input.replace(/\s/g, '').length % 2 === 0;
 			}
-			// Check if it's valid Base64
-			return /^[A-Za-z0-9+/]*={0,2}$/.test(input);
+			return true;
 		} catch {
 			return false;
 		}
@@ -140,8 +218,8 @@
 </script>
 
 <PageHeader 
-	title="Base64 Encoder/Decoder" 
-	subtitle="Encode and decode Base64 strings with support for URL-safe encoding" 
+	title="Multi-Format Encoder/Decoder" 
+	subtitle="Encode and decode text using Base64, Base32, and Base16 (Hex) formats" 
 	icon={BinaryIcon} 
 />
 
@@ -156,25 +234,47 @@
 					<CardDescription>Configure encoding/decoding options</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<div class="grid grid-cols-2 gap-4">
-						<div class="space-y-2">
-							<Label>Mode</Label>
-							<div class="flex items-center space-x-4">
-								<label class="flex items-center space-x-2">
-									<input type="radio" bind:group={mode} value="encode" />
-									<span class="text-sm">Encode</span>
-								</label>
-								<label class="flex items-center space-x-2">
-									<input type="radio" bind:group={mode} value="decode" />
-									<span class="text-sm">Decode</span>
-								</label>
+					<div class="space-y-4">
+						<div class="grid grid-cols-2 gap-4">
+							<div class="space-y-2">
+								<Label>Mode</Label>
+								<RadioGroup bind:value={mode} class="flex items-center space-x-4">
+									<div class="flex items-center space-x-2">
+										<RadioGroupItem value="encode" id="encode" />
+										<Label for="encode" class="text-sm">Encode</Label>
+									</div>
+									<div class="flex items-center space-x-2">
+										<RadioGroupItem value="decode" id="decode" />
+										<Label for="decode" class="text-sm">Decode</Label>
+									</div>
+								</RadioGroup>
+							</div>
+
+							<div class="space-y-2">
+								<Label>Format</Label>
+								<RadioGroup bind:value={format} class="flex items-center space-x-4">
+									<div class="flex items-center space-x-2">
+										<RadioGroupItem value="base64" id="base64" />
+										<Label for="base64" class="text-sm">Base64</Label>
+									</div>
+									<div class="flex items-center space-x-2">
+										<RadioGroupItem value="base32" id="base32" />
+										<Label for="base32" class="text-sm">Base32</Label>
+									</div>
+									<div class="flex items-center space-x-2">
+										<RadioGroupItem value="base16" id="base16" />
+										<Label for="base16" class="text-sm">Base16 (Hex)</Label>
+									</div>
+								</RadioGroup>
 							</div>
 						</div>
 
-						<div class="flex items-center space-x-2">
-							<Switch id="url-safe" bind:checked={urlSafe} />
-							<Label for="url-safe">URL-Safe Base64</Label>
-						</div>
+						{#if format === 'base64'}
+							<div class="flex items-center space-x-2">
+								<Switch id="url-safe" bind:checked={urlSafe} />
+								<Label for="url-safe">URL-Safe Base64</Label>
+							</div>
+						{/if}
 					</div>
 
 					<Separator />
@@ -214,25 +314,25 @@
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Input ({mode === 'encode' ? 'Plain Text' : 'Base64'})</CardTitle>
+					<CardTitle>Input ({mode === 'encode' ? 'Plain Text' : format.toUpperCase()})</CardTitle>
 					<CardDescription>
 						{mode === 'encode' 
-							? 'Enter the text you want to encode to Base64' 
-							: 'Enter the Base64 string you want to decode'}
+							? `Enter the text you want to encode to ${format.toUpperCase()}` 
+							: `Enter the ${format.toUpperCase()} string you want to decode`}
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
 					<div class="space-y-2">
-						<textarea
+						<Textarea
 							bind:value={inputText}
 							placeholder={mode === 'encode' 
 								? 'Enter plain text to encode...' 
-								: 'Enter Base64 string to decode...'}
-							class="min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-						></textarea>
+								: `Enter ${format.toUpperCase()} string to decode...`}
+							class="min-h-[200px] font-mono"
+						/>
 						
-						{#if mode === 'decode' && inputText && !isValidBase64()}
-							<p class="text-sm text-red-600">Invalid Base64 format</p>
+						{#if mode === 'decode' && inputText && !isValidInput()}
+							<p class="text-sm text-red-600">Invalid {format.toUpperCase()} format</p>
 						{/if}
 					</div>
 
@@ -249,23 +349,23 @@
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Output ({mode === 'encode' ? 'Base64' : 'Plain Text'})</CardTitle>
+					<CardTitle>Output ({mode === 'encode' ? format.toUpperCase() : 'Plain Text'})</CardTitle>
 					<CardDescription>
 						{mode === 'encode' 
-							? 'The Base64 encoded result' 
+							? `The ${format.toUpperCase()} encoded result` 
 							: 'The decoded plain text result'}
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
 					<div class="space-y-2">
-						<textarea
+						<Textarea
 							value={outputText}
 							readonly
 							placeholder={mode === 'encode' 
-								? 'Base64 encoded text will appear here...' 
+								? `${format.toUpperCase()} encoded text will appear here...` 
 								: 'Decoded plain text will appear here...'}
-							class="min-h-[200px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-						></textarea>
+							class="min-h-[200px] bg-muted font-mono"
+						/>
 					</div>
 
 					{#if outputText}
@@ -296,28 +396,28 @@
 			<Card>
 				<CardHeader>
 					<CardTitle>Information</CardTitle>
-					<CardDescription>About Base64 encoding</CardDescription>
+					<CardDescription>About encoding formats</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
 					<div class="space-y-3 text-sm">
 						<div>
-							<h4 class="font-medium">What is Base64?</h4>
-							<p class="text-muted-foreground">Base64 is a binary-to-text encoding scheme that represents binary data in ASCII string format using 64 printable characters.</p>
+							<h4 class="font-medium">Base64</h4>
+							<p class="text-muted-foreground">Uses 64 characters (A-Z, a-z, 0-9, +, /) to encode binary data. Commonly used for email attachments and data URLs.</p>
+						</div>
+
+						<div>
+							<h4 class="font-medium">Base32</h4>
+							<p class="text-muted-foreground">Uses 32 characters (A-Z, 2-7) for better human readability. Often used in TOTP authentication codes.</p>
+						</div>
+
+						<div>
+							<h4 class="font-medium">Base16 (Hex)</h4>
+							<p class="text-muted-foreground">Uses hexadecimal (0-9, A-F) to represent each byte as two characters. Simple and widely supported.</p>
 						</div>
 
 						<div>
 							<h4 class="font-medium">URL-Safe Base64</h4>
 							<p class="text-muted-foreground">Replaces + with -, / with _, and removes padding (=) to make it safe for URLs and filenames.</p>
-						</div>
-
-						<div>
-							<h4 class="font-medium">Common Uses</h4>
-							<ul class="text-muted-foreground list-disc list-inside space-y-1">
-								<li>Email attachments (MIME)</li>
-								<li>Data URLs in web pages</li>
-								<li>API authentication tokens</li>
-								<li>Storing binary data in text formats</li>
-							</ul>
 						</div>
 					</div>
 				</CardContent>
@@ -326,23 +426,23 @@
 			<Card>
 				<CardHeader>
 					<CardTitle>Examples</CardTitle>
-					<CardDescription>Common Base64 examples</CardDescription>
+					<CardDescription>Encoding examples for "Hello"</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div class="space-y-3 text-sm">
 						<div>
-							<p class="font-medium">Text: "Hello, World!"</p>
-							<p class="text-muted-foreground font-mono">SGVsbG8sIFdvcmxkIQ==</p>
+							<p class="font-medium">Base64</p>
+							<p class="text-muted-foreground font-mono">SGVsbG8=</p>
 						</div>
 
 						<div>
-							<p class="font-medium">Text: "Base64"</p>
-							<p class="text-muted-foreground font-mono">QmFzZTY0</p>
+							<p class="font-medium">Base32</p>
+							<p class="text-muted-foreground font-mono">JBSWY3DP</p>
 						</div>
 
 						<div>
-							<p class="font-medium">URL-Safe: "Hello?"</p>
-							<p class="text-muted-foreground font-mono">SGVsbG8_</p>
+							<p class="font-medium">Base16 (Hex)</p>
+							<p class="text-muted-foreground font-mono">48656C6C6F</p>
 						</div>
 					</div>
 				</CardContent>
@@ -355,11 +455,11 @@
 				</CardHeader>
 				<CardContent>
 					<div class="space-y-2 text-sm">
-						<p>• Base64 increases data size by ~33%</p>
-						<p>• Use URL-safe for web applications</p>
-						<p>• Binary files can be encoded for text storage</p>
-						<p>• Decoding validates input format</p>
-						<p>• Copy/paste or upload files for conversion</p>
+						<p>• Base64: ~33% size increase, widely supported</p>
+						<p>• Base32: ~60% size increase, human-friendly</p>
+						<p>• Base16: 100% size increase, simple format</p>
+						<p>• Use URL-safe Base64 for web applications</p>
+						<p>• Upload files or paste text for conversion</p>
 					</div>
 				</CardContent>
 			</Card>
