@@ -3,15 +3,15 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Separator } from '$lib/components/ui/separator';
-	import { Switch } from '$lib/components/ui/switch';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
+	import { Separator } from '$lib/components/ui/separator';
+	import { Switch } from '$lib/components/ui/switch';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import BracesIcon from '@lucide/svelte/icons/braces';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import DownloadIcon from '@lucide/svelte/icons/download';
-	import FileTextIcon from '@lucide/svelte/icons/file-text';
 	import IndentIncreaseIcon from '@lucide/svelte/icons/indent-increase';
 	import MinusIcon from '@lucide/svelte/icons/minus';
 	import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
@@ -364,12 +364,12 @@
 					<CardDescription>Paste or type your JSON data here</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<textarea
+					<Textarea
 						bind:value={inputJson}
 						placeholder="Paste your JSON here..."
 						onkeydown={handleTabKey}
-						class="min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-					></textarea>
+						class="min-h-[400px] font-mono"
+					/>
 					
 					{#if inputJson}
 						<div class="text-sm text-muted-foreground">
@@ -386,12 +386,12 @@
 					<CardDescription>The validated and formatted JSON result</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<textarea
+					<Textarea
 						value={outputJson}
 						readonly
 						placeholder="Formatted JSON will appear here..."
-						class="min-h-[400px] w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-					></textarea>
+						class="min-h-[400px] bg-muted font-mono"
+					/>
 					
 					{#if outputJson}
 						<div class="text-sm text-muted-foreground">
