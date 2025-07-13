@@ -4,6 +4,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Switch } from '$lib/components/ui/switch';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import PageContainer from '$lib/components/ui/page-container.svelte';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import CopyIcon from '@lucide/svelte/icons/copy';
@@ -318,11 +319,11 @@
 					<CardDescription>The original version of your text</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<textarea
+					<Textarea
 						bind:value={originalText}
 						placeholder="Paste your original text here..."
-						class="min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-					></textarea>
+						class="min-h-[400px] font-mono"
+					/>
 					
 					{#if originalText}
 						<div class="text-sm text-muted-foreground">
@@ -339,11 +340,11 @@
 					<CardDescription>The modified version of your text</CardDescription>
 				</CardHeader>
 				<CardContent class="space-y-4">
-					<textarea
+					<Textarea
 						bind:value={modifiedText}
 						placeholder="Paste your modified text here..."
-						class="min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-					></textarea>
+						class="min-h-[400px] font-mono"
+					/>
 					
 					{#if modifiedText}
 						<div class="text-sm text-muted-foreground">
