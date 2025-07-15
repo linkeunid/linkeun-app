@@ -191,13 +191,14 @@
 					<Card.Content>
 						<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
 							{#each popularTools as tool}
+								{@const Component = tool.icon}
 								<Button
 									href={tool.href}
 									variant="outline"
 									class="hover:bg-muted/50 h-auto justify-start p-4"
 								>
 									<div class="flex items-start gap-3 text-left">
-										<svelte:component this={tool.icon} class="mt-0.5 h-4 w-4 {tool.color}" />
+										<Component class="mt-0.5 h-4 w-4 {tool.color}" />
 										<div class="space-y-1">
 											<div class="text-sm font-medium">{tool.title}</div>
 											<div class="text-muted-foreground text-xs">{tool.description}</div>
@@ -221,8 +222,9 @@
 					<Card.Content>
 						<div class="grid gap-2 md:grid-cols-3 lg:grid-cols-6">
 							{#each utilityTools as tool}
+								{@const Component = tool.icon}
 								<Button href={tool.href} variant="ghost" size="sm" class="h-auto justify-start p-2">
-									<svelte:component this={tool.icon} class="mr-2 h-3 w-3" />
+									<Component class="mr-2 h-3 w-3" />
 									<span class="truncate text-xs">{tool.title}</span>
 								</Button>
 							{/each}
@@ -327,13 +329,14 @@
 					<Card.Content>
 						<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
 							{#each popularTools as tool}
+								{@const Component = tool.icon}
 								<Button
 									href={tool.href}
 									variant="outline"
 									class="hover:bg-muted/50 h-auto justify-start p-4"
 								>
 									<div class="flex items-start gap-3 text-left">
-										<svelte:component this={tool.icon} class="mt-0.5 h-4 w-4 {tool.color}" />
+										<Component class="mt-0.5 h-4 w-4 {tool.color}" />
 										<div class="space-y-1">
 											<div class="text-sm font-medium">{tool.title}</div>
 											<div class="text-muted-foreground text-xs">{tool.description}</div>

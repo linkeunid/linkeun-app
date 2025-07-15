@@ -33,7 +33,8 @@
 		<div>
 			<div class="mb-2 flex items-center gap-2">
 				{#if icon}
-					<svelte:component this={icon} class="h-6 w-6" />
+					{@const Component = icon}
+					<Component class="h-6 w-6" />
 				{/if}
 				<h1 class="text-3xl font-bold tracking-tight">{title}</h1>
 			</div>
