@@ -54,7 +54,7 @@
 									id="username"
 									name="username"
 									type="text"
-									placeholder="hanivanrizky"
+									placeholder="john_doe"
 									value={form?.values?.username ?? ''}
 									required
 								/>

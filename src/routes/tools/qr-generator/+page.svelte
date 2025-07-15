@@ -18,6 +18,7 @@
 	import QrCodeIcon from '@lucide/svelte/icons/qr-code';
 	import UploadIcon from '@lucide/svelte/icons/upload';
 	import { createQrPngDataUrl } from '@svelte-put/qr';
+	import { toast } from 'svelte-sonner';
 
 	let text = $state('https://example.com');
 	let size = $state(200);
@@ -70,11 +71,15 @@
 			const reader = new FileReader();
 			reader.onload = (e) => {
 				watermarkUrl = (e.target?.result as string) || '';
+				toast.success('Watermark image uploaded successfully!');
 			};
 			reader.readAsDataURL(file);
 		} else {
 			watermarkFile = null;
 			watermarkUrl = '';
+			if (file) {
+				toast.error('Please select a valid image file');
+			}
 		}
 	}
 
@@ -85,6 +90,7 @@
 		link.download = 'qr-code.png';
 		link.href = qrDataUrl;
 		link.click();
+		toast.success('QR code downloaded successfully!');
 	}
 
 	async function copyQRToClipboard() {
@@ -95,8 +101,10 @@
 			const blob = await response.blob();
 			const item = new ClipboardItem({ 'image/png': blob });
 			await navigator.clipboard.write([item]);
+			toast.success('QR code copied to clipboard!');
 		} catch (error) {
 			console.error('Failed to copy QR code:', error);
+			toast.error('Failed to copy QR code to clipboard');
 		}
 	}
 </script>

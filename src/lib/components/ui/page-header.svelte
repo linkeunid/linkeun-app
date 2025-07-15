@@ -17,9 +17,9 @@
 	<meta
 		name="description"
 		content={subtitle ??
-			'Welcome to {siteConfig.siteName} - A modern SvelteKit application with link management and developer tools.'}
+			`Welcome to ${siteConfig.siteName} - A modern SvelteKit application with link management and developer tools.`}
 	/>
-	<meta property="og:title" content={`${title} - {siteConfig.siteName}`} />
+	<meta property="og:title" content={`${title} - ${siteConfig.siteName}`} />
 	<meta
 		property="og:description"
 		content={subtitle ??
