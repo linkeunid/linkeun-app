@@ -3,6 +3,32 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"license": "MIT",
+	"author": {
+		"name": "Hanivan Rizky S",
+		"email": "hanivan@linkeun.com",
+		"url": "https://hanivan.my.id"
+	},
+	"keywords": [
+		"link shortener",
+		"URL shortener",
+		"developer tools",
+		"QR code generator",
+		"JSON formatter",
+		"text analyzer",
+		"password generator",
+		"base64 encoder",
+		"timestamp converter",
+		"open graph generator",
+		"ASCII art generator",
+		"markdown editor",
+		"fake data generator",
+		"link analytics",
+		"click tracking",
+		"svelte",
+		"sveltekit",
+		"typescript"
+	],
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
