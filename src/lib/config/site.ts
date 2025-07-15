@@ -2,7 +2,7 @@ export const siteConfig = {
 	siteName: 'Linkeun Mono',
 	siteDescription:
 		'All-in-one platform for link management and developer tools. Shorten URLs, track analytics, and access 16+ powerful utilities including QR generators, JSON formatters, and text analyzers.',
-	siteUrl: 'https://app.linkeun.com',
+	siteUrl: 'https://dash.linkeun.com',
 	siteKeywords: [
 		'link shortener',
 		'URL shortener',
