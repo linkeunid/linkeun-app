@@ -17,6 +17,7 @@
 	import PauseIcon from '@lucide/svelte/icons/pause';
 	import PlayIcon from '@lucide/svelte/icons/play';
 	import { onMount, onDestroy } from 'svelte';
+	import { toast } from 'svelte-sonner';
 
 	// State
 	let currentTime = $state(new Date());
@@ -136,8 +137,10 @@
 		isRunning = !isRunning;
 		if (isRunning) {
 			startTimer();
+			toast.success('Binary clock started');
 		} else {
 			stopTimer();
+			toast.success('Binary clock paused');
 		}
 	}
 
